@@ -29,8 +29,8 @@ def prompt_date(prompt: str) -> datetime:
         except ValueError:
             print("Invalid date format. Please enter in YYYY-MM-DD format.")
 
-def prompt_init(lable:str) -> Optional[int]:
-    raw_val = input(f"Enter {lable}: ").strip()
+def prompt_init(label: str) -> Optional[int]:
+    raw_val = input(f"Enter {label }: ").strip()
     if raw_val.isdigit():
         return int(raw_val)
     return None
