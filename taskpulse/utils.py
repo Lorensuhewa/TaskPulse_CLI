@@ -1,0 +1,42 @@
+from datetime import datetime
+from typing import Optional
+
+
+def prompt_non_empty(prompt: str) -> str:
+    """Prompt the user for input until a non-empty string is provided."""
+    while True:
+        value = input(prompt).strip()
+        if value:
+            return value
+        print("Input cannot be empty. Please try again.")
+
+def prompt_priority(default: str = "Medium") -> str:
+    valid = {"High", "Medium", "Low"}
+    while True:
+        value = input(f"Enter priority (High, Medium, Low) [{default}]: ").strip().capitalize()
+        if not value:
+            return default
+        if value in valid:
+            return value
+        print("Invalid priority. Please enter High, Medium, or Low.")
+
+def prompt_date(prompt: str) -> datetime:
+    """Prompt the user for a date in YYYY-MM-DD format."""
+    while True:
+        value = input(prompt).strip()
+        try:
+            return datetime.strptime(value, "%Y-%m-%d")
+        except ValueError:
+            print("Invalid date format. Please enter in YYYY-MM-DD format.")
+
+def prompt_init(lable:str) -> Optional[int]:
+    raw_val = input(f"Enter {lable}: ").strip()
+    if raw_val.isdigit():
+        return int(raw_val)
+    return None
+
+def truncate(text: str, max_length: int) -> str:
+    """Truncate text to a maximum length, adding ellipsis if necessary."""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length - 3] + "..."
