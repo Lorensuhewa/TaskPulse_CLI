@@ -1,8 +1,7 @@
-import datetime
 import sys
-
 from taskpulse.manager import TaskManager
-from taskpulse.utils import prompt_non_empty
+from taskpulse.utils import prompt_date, prompt_init, prompt_non_empty, prompt_priority
+from datetime import datetime
 
 
 def render_task_table(tasks):
@@ -22,7 +21,7 @@ def render_task_table(tasks):
             task.description,
             task.category,
             task.priority,
-            task.due_date.strftime("%Y-%m-%d"),
+            task.due_date,
             task.status
         ))
 
@@ -48,31 +47,39 @@ def handle_search(manager: TaskManager):
     render_task_table(filtered_tasks)
 
 def handle_update(manager: TaskManager):
-    print("\n ----- Update Task -----")
-    task_id = prompt_non_empty("Enter task ID to update: ")
-    task = manager.find_by_id(int(task_id))
-    if not task:
-        print(f"\n Task with ID {task_id} not found.")
+    print("\n--- Update Task ---")
+    task_id = prompt_init("Enter Task ID to update")
+    if task_id is None:
+        print("[!] Invalid Task ID.")
         return
 
-    print(f"\n Updating Task '{task.title}' (ID: {task.id})")
+    task = manager.find_by_id(task_id)
+    if not task:
+        print(f"[!] Task ID {task_id:03d} not found.")
+        return
+
+    # Use prompt_non_empty or allow keeping current value with fallback
     new_title = input(f"Enter new title [{task.title}]: ").strip() or task.title
     new_desc = input(f"Enter new description [{task.description}]: ").strip() or task.description
-    new_category = input(f"Enter new category [{task.category}]: ").strip() or task.category
-    new_priority = input(f"Enter new priority (High, Medium, Low) [{task.priority}]: ").strip() or task.priority
-    new_due_date = input(f"Enter new due date (YYYY-MM-DD) [{task.due_date.strftime('%Y-%m-%d')}]: ").strip() or task.due_date.strftime('%Y-%m-%d')
-    new_status = input(f"Enter new status (Pending, Completed) [{task.status}]: ").strip() or task.status
+    new_cat = input(f"Enter new category [{task.category}]: ").strip() or task.category
+    
+    # Use validated prompts for Priority and Due Date
+    new_priority = prompt_priority(default=task.priority)
+    new_due_date = prompt_date("Enter new due date", default=task.due_date if "-" in str(task.due_date) else None)
+    
+    status_choice = input(f"Enter new status (Pending, Completed) [{task.status}]: ").strip().capitalize()
+    if status_choice in {"Pending", "Completed"}:
+        task.status = status_choice
 
-    # Update the task attributes
+    # Update task attributes (store due_date as string)
     task.title = new_title
     task.description = new_desc
-    task.category = new_category
+    task.category = new_cat
     task.priority = new_priority
-    task.due_date = datetime.strptime(new_due_date, "%Y-%m-%d")
-    task.status = new_status
+    task.due_date = new_due_date
 
     manager.save()
-    print(f"\n Task '{task.title}' updated successfully.")
+    print(f"\n[+] Task '{task.title}' updated successfully.")
 
 def handle_complete(manager: TaskManager):
     print("\n ----- Mark Task as Completed -----")

@@ -20,17 +20,20 @@ def prompt_priority(default: str = "Medium") -> str:
             return value
         print("Invalid priority. Please enter High, Medium, or Low.")
 
-def prompt_date(prompt: str) -> datetime:
-    """Prompt the user for a date in YYYY-MM-DD format."""
+def prompt_date(label: str, default: Optional[str] = None) -> str:
+    prompt_str = f"{label} (YYYY-MM-DD)" + (f" [{default}]: " if default else ": ")
     while True:
-        value = input(prompt).strip()
+        raw_val = input(prompt_str).strip()
+        if not raw_val and default:
+            return default
         try:
-            return datetime.strptime(value, "%Y-%m-%d")
+            parsed = datetime.strptime(raw_val, "%Y-%m-%d")
+            return parsed.strftime("%Y-%m-%d")
         except ValueError:
-            print("Invalid date format. Please enter in YYYY-MM-DD format.")
+            print("  [!] Invalid date format. Please use YYYY-MM-DD.")
 
 def prompt_init(label: str) -> Optional[int]:
-    raw_val = input(f"Enter {label }: ").strip()
+    raw_val = input(f"Enter {label}: ").strip()
     if raw_val.isdigit():
         return int(raw_val)
     return None

@@ -1,7 +1,7 @@
 
 
 from typing import List, Optional
-from taskpulse.main import Task
+from taskpulse.models import Task
 from taskpulse.storage import JSONStorage
 
 
@@ -19,12 +19,18 @@ class TaskManager:
         raw_data = [task.to_dict() for task in self.tasks]
         return self.storage.save(raw_data)
 
-    def add_task(self, title: str, description: str, category: str, priority: str, due_date, status: str = "Pending") -> Task:
-        task_id = self._generate_task_id()
-        new_task = Task(task_id, title, description, category, priority, due_date, status)
-        self.tasks.append(new_task)
-        self.save()
-        return new_task
+    def add_task(
+        self,
+        title: str,
+        description: str,
+        category: str,
+        priority: str,
+        due_date: str,
+    ) -> Task:
+        next_id = max([t.id for t in self.tasks], default=0) + 1
+        task = Task(next_id, title, description, category, priority, due_date)
+        self.tasks.append(task)
+        return task
 
     def find_by_id(self, task_id: int) -> Optional[Task]:
         for task in self.tasks:
@@ -52,20 +58,23 @@ class TaskManager:
         else:
             return self.tasks
 
-    def get_staticstics(self) -> dict:
-        total_tasks = len(self.tasks)
-        completed_tasks = sum(1 for task in self.tasks if task.status == "Completed")
-        pending_tasks = total_tasks - completed_tasks
+    def get_statistics(self):
+        total = len(self.tasks)
+        completed = sum(1 for t in self.tasks if t.status == "Completed")
+        pending = total - completed
+        rate = (completed / total * 100) if total > 0 else 0.0
 
         priorities = {
-            "High": sum(1 for task in self.tasks if task.priority == "High"),
-            "Medium": sum(1 for task in self.tasks if task.priority == "Medium"),
-            "Low": sum(1 for task in self.tasks if task.priority == "Low")
+            "High": sum(1 for t in self.tasks if t.priority == "High"),
+            "Medium": sum(1 for t in self.tasks if t.priority == "Medium"),
+            "Low": sum(1 for t in self.tasks if t.priority == "Low"),
         }
+
         return {
-            "total": total_tasks,
-            "completed": completed_tasks,
-            "pending": pending_tasks,
-            "priorities": priorities
+            "total_tasks": total,
+            "completed_tasks": completed,
+            "pending_tasks": pending,
+            "priorities": priorities,
+            "completed_percentage": rate,
         }
         
